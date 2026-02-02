@@ -1,8 +1,8 @@
-const CACHE_NAME = '폴더-v1';
+const CACHE_NAME = 'cm-csw-v1';
 const urlsToCache = [
-  '/폴더/',
-  '/폴더/index.html',
-  '/폴더/etc/manifest.json'
+  '/cm-csw/',
+  '/cm-csw/index.html',
+  '/cm-csw/etc/manifest.json'
 ];
 
 // 설치 이벤트 - 캐시 생성
@@ -129,7 +129,7 @@ self.addEventListener('push', event => {
 self.addEventListener('notificationclick', event => {
   event.notification.close();
   event.waitUntil(
-    clients.openWindow('/폴더/')
+    clients.openWindow('/cm-csw/')
   );
 });
 
