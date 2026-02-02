@@ -1,3 +1,7 @@
+if ('serviceWorker' in navigator) {
+	navigator.serviceWorker.register('sw.js'); 
+}
+
 // 공유 변수 및 Firebase 설정
 const firebaseConfig = {
   apiKey: "AIzaSyCqtpxdFCmGkpaEiKP1RKz0ktgcRfLmGzo",
