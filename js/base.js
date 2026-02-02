@@ -1,12 +1,12 @@
 // 공유 변수 및 Firebase 설정
 const firebaseConfig = {
-  apiKey: "AIzaSyDnOSkn8HwCa0REFFO-JB6Nxdy_aqsKTqE",
-  authDomain: "cm-csw.firebaseapp.com",
-  projectId: "cm-csw",
-  storageBucket: "cm-csw.firebasestorage.app",
-  messagingSenderId: "424293387357",
-  appId: "1:424293387357:web:e61cedc56824e4e88111b4",
-  measurementId: "G-8RZVBG1B4B"
+  apiKey: "AIzaSyCqtpxdFCmGkpaEiKP1RKz0ktgcRfLmGzo",
+  authDomain: "cmcsw-a1901.firebaseapp.com",
+  databaseURL: "https://cmcsw-a1901-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "cmcsw-a1901",
+  storageBucket: "cmcsw-a1901.firebasestorage.app",
+  messagingSenderId: "659809381864",
+  appId: "1:659809381864:web:2fc78e455081ceea76885d"
 };
 
 // 전역 변수
