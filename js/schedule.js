@@ -75,6 +75,7 @@ function updateScheduleData(event) {
     const schedule = schedules.find(s => s.id === scheduleId);
     if (schedule) {
         schedule[field] = value;
+        console.log('📝 스케줄 업데이트:', schedules);
     }
 }
 
@@ -112,8 +113,18 @@ function removeSchedule(scheduleId) {
 }
 
 // 스케줄 데이터 가져오기 (회원 추가/수정 시 사용)
+// IMPORTANT: id 필드를 제외하고 반환 (Firebase 저장용)
 function getSchedulesData() {
-    return schedules.filter(s => s.day && s.startTime && s.endTime);
+    const validSchedules = schedules
+        .filter(s => s.day && s.startTime && s.endTime)
+        .map(s => ({
+            day: s.day,
+            startTime: s.startTime,
+            endTime: s.endTime
+        }));
+    
+    console.log('📅 [getSchedulesData] 반환 데이터:', validSchedules);
+    return validSchedules;
 }
 
 // 스케줄 데이터 설정 (회원 편집 시 사용)
@@ -133,6 +144,7 @@ function setSchedulesData(memberSchedules) {
         }));
         nextScheduleId = schedules.length + 1;
     }
+    console.log('📋 [setSchedulesData] 설정된 스케줄:', schedules);
     renderSchedules();
 }
 
@@ -143,6 +155,7 @@ function resetSchedules() {
         { id: 2, day: '', startTime: '12:00', endTime: '12:20' }
     ];
     nextScheduleId = 3;
+    console.log('🔄 [resetSchedules] 스케줄 초기화');
     renderSchedules();
 }
 
@@ -151,6 +164,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // 스케줄 컨테이너가 있는 경우에만 초기화
     const schedulesContainer = document.getElementById('schedulesContainer');
     if (schedulesContainer) {
+        console.log('✅ 스케줄 컨테이너 발견, 초기화 시작');
         renderSchedules();
+    } else {
+        console.warn('⚠️ 스케줄 컨테이너를 찾을 수 없습니다');
     }
 });
