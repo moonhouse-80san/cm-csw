@@ -24,13 +24,13 @@ if ('serviceWorker' in navigator) {
 
 // 공유 변수 및 Firebase 설정
 const firebaseConfig = {
-  apiKey: "AIzaSyCqtpxdFCmGkpaEiKP1RKz0ktgcRfLmGzo",
-  authDomain: "cmcsw-a1901.firebaseapp.com",
-  databaseURL: "https://cmcsw-a1901-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "cmcsw-a1901",
-  storageBucket: "cmcsw-a1901.firebasestorage.app",
-  messagingSenderId: "659809381864",
-  appId: "1:659809381864:web:2fc78e455081ceea76885d"
+    apiKey: "AIzaSyD4GrNs2Vw9tSxGHSpKp9MvE8hsJwGo34U",
+    authDomain: "mmcsw-880ce.firebaseapp.com",
+    databaseURL: "https://mmcsw-880ce-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "mmcsw-880ce",
+    storageBucket: "mmcsw-880ce.firebasestorage.app",
+    messagingSenderId: "78114283532",
+    appId: "1:78114283532:web:7d32e87fae15796e684e29"
 };
 
 // 전역 변수
@@ -198,9 +198,18 @@ function updateFeePresetButtons() {
     });
 }
 
-// 숫자 포맷팅
+// 숫자 포맷팅 (안전성 추가)
 function formatNumber(num) {
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    // null, undefined, 빈 문자열 체크
+    if (num === null || num === undefined || num === '') {
+        return '0';
+    }
+    // 숫자로 변환
+    const number = typeof num === 'number' ? num : parseFloat(num);
+    if (isNaN(number)) {
+        return '0';
+    }
+    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
 // 날짜 포맷팅
