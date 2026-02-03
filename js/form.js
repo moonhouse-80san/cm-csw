@@ -109,9 +109,7 @@ function addMember() {
     const awards = [...currentAwards];
 
     // 스케줄 데이터 가져오기
-    console.log("🔍 [addMember] getSchedulesData 호출 전");
     const schedulesData = getSchedulesData();
-    console.log("📅 [addMember] schedulesData:", JSON.stringify(schedulesData, null, 2));
 
     if (!name) {
         showAlert('이름을 입력해주세요!');
@@ -161,7 +159,6 @@ function addMember() {
         etc: etc
     };
 
-    console.log("💾 [addMember] 저장할 member:", JSON.stringify(member, null, 2));
     members.push(member);
     saveToFirebase();
     filteredMembers = [...members];
