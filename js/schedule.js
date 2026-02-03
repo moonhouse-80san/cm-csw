@@ -148,5 +148,9 @@ function resetSchedules() {
 
 // 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', function() {
-    renderSchedules();
+    // 스케줄 컨테이너가 있는 경우에만 초기화
+    const schedulesContainer = document.getElementById('schedulesContainer');
+    if (schedulesContainer) {
+        renderSchedules();
+    }
 });
