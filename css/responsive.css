@@ -1,5 +1,17 @@
 @media (max-width: 600px) {
-    .form-grid {
+	.header {
+		padding: 5px 20px;
+	}
+
+	.search-section {
+		padding: 10px 20px;
+	}
+	
+	.search-box {
+		margin-bottom: 5px;
+	}
+
+	.form-grid {
         grid-template-columns: 1fr;
     }
 
@@ -14,7 +26,8 @@
     }
 
     .filter-buttons {
-        font-size: 11px;
+		margin-top: 5px;
+		font-size: 11px;
     }
 
     .time-group {
@@ -43,10 +56,10 @@
         margin-bottom: 6px;
     }
 
-    .member-name {
-        font-weight: bold;
-        font-size: 17px;
-    }
+	.member-name .mcardn {
+		font-weight: bold;
+		font-size: 24px;
+	}
 
     .member-name .attendance-count {
         font-size: 11px;
@@ -208,9 +221,14 @@
     }
 
     .content-section {
+        max-height: 300px;
         width: 100%;
-        padding: 15px;
+        padding: 5px 15px;
     }
+
+	.empty-state {
+		padding: 20px;
+	}
 
 	.form-row {
 		flex-direction: column;

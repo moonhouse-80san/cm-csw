@@ -163,7 +163,7 @@ function renderMembers() {
                 <div class="member-header">
                     <div class="member-name" style="cursor: pointer; color: #000; text-decoration: none;" 
                          onclick="showMemberDetails(${originalIndex})">
-                        ${member.name}
+                        <span class="mcardn">${member.name}</span>
                         ${attendanceCount}
                     </div>
                     <div class="member-actions">
@@ -503,15 +503,17 @@ function editMember(index) {
     // 상단으로 스크롤 이동
     window.scrollTo({ top: 0, behavior: 'smooth' });
     
-    // 이름 입력란에 포커스 이동 (스크롤 완료 후)
-	setTimeout(() => {
-		const nameInput = document.getElementById('name');
-		if (nameInput) {
-			nameInput.focus();
-			nameInput.select();
-			nameInput.blur();
-		}
-	}, 300); // 스크롤 애니메이션 시간 고려
+setTimeout(() => {
+    const nameInput = document.getElementById('name');
+    if (nameInput) {
+        nameInput.setAttribute('readonly', 'readonly');
+        nameInput.focus();
+        nameInput.select();
+        setTimeout(() => {
+            nameInput.removeAttribute('readonly');
+        }, 100);
+    }
+}, 300);
     
     resetLockTimer();
 }
