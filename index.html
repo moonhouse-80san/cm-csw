@@ -10,7 +10,7 @@
     <link rel="manifest" href="./etc/manifest.json">
     <link rel="apple-touch-icon" href="icon-192x192.png">
     <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/lock.css">
+    <link rel="stylesheet" href="css/login.css">
     <link rel="stylesheet" href="css/camera.css">
     <link rel="stylesheet" href="css/member.css">
     <link rel="stylesheet" href="css/calendar.css">
@@ -23,12 +23,21 @@
     <div class="container">
         <!-- 헤더 -->
         <div class="header">
-            <div class="sync-status" id="syncStatus">☁️ 동기화</div>
-            <div class="settings-icon" onclick="openSettings()">
+            <div class="sync-status" id="syncStatus" style="display: none;">☁️ 동기화</div>
+            
+            <div class="settings-icon" onclick="handleSettingsClick()">
                 <svg viewBox="0 0 24 24">
                     <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c.04-0.24.24-0.41.48-0.41 h3.84c0.24,0,0.43,0.17,0.47,0.41L19.25,5.35c0.59,0.24,1.13,0.56,1.62,0.94l2.39-0.96c0.22-0.08,0.47,0,0.59,0.22l1.92,3.32 c0.12,0.22,0.07,0.47-0.12,0.61l-2.03,1.58c0.05,0.3,0.07,0.63,0.07,0.94s-0.02,0.64-0.07,0.94l2.03,1.58 c0.18,0.14,0.23,0.41,0.12,0.61l-1.92,3.32c-0.12,0.22-0.37,0.29-0.59,0.22l-2.39-0.96c-0.5,0.38-1.03,0.7-1.62,0.94l-0.36,2.54 c-0.05,0.24-0.24,0.41-0.47,0.41h-3.84c-0.24,0-0.44-0.17-0.48-0.41l-0.36-2.54c-0.59-0.24-1.13-0.56-1.62-0.94l-2.39,0.96 c-0.22,0.08-0.47,0-0.59-0.22l-1.92,3.32c-0.12-0.22-0.07-0.47,0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
                 </svg>
             </div>
+            
+            <!-- 로그아웃 버튼 (설정 아이콘 오른쪽, 로그인 시에만 표시) -->
+            <div class="logout-icon" id="logoutIcon" onclick="logout()" style="display: none;">
+                <svg viewBox="0 0 24 24" fill="white">
+                    <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+                </svg>
+            </div>
+            
             <div class="club-name" id="clubNameDisplay">구장명을 설정하세요</div>
             <div class="member-count">총<span id="memberCount">0</span></div>
         </div>
@@ -84,24 +93,6 @@
 				<div id="scheduleContent">
 					<!-- 일주일 스케줄이 여기에 표시됩니다 -->
 				</div>
-			</div>
-		</div>
-
-		<!-- 암호 입력 섹션 -->
-		<div class="password-section">
-			<div class="password-input-group">
-				<input type="password" 
-					   id="lockPassword" 
-					   class="password-input" 
-					   placeholder="수정/삭제 암호 입력"
-					   onkeyup="if(event.key === 'Enter') unlockEditButtons()">
-				<button class="unlock-btn" onclick="unlockEditButtons()">
-					🔓 잠금 해제
-				</button>
-			</div>
-			<!-- 잠금 상태 알림을 password-section 안으로 이동 -->
-			<div class="lock-tooltip" id="lockTooltip">
-				<span id="lockTooltipText">🔒 잠김 상태 - 수정/삭제 암호를 입력해주세요</span>
 			</div>
 		</div>
 
@@ -250,7 +241,7 @@
 					<label for="privateMemo">📝 비밀글 (관리자용)</label>
 					<textarea id="privateMemo" placeholder="관리자만 볼 수 있는 비밀 메모를 입력하세요" rows="3"></textarea>
 					<div style="font-size: 12px; color: #666; margin-top: 5px;">
-						※ 이 내용은 잠금 해제 상태에서만 표시됩니다.
+						※ 이 내용은 로그인 상태에서만 표시됩니다.
 					</div>
 				</div>
 
@@ -291,8 +282,34 @@
             <!-- 추가/수정/초기화 버튼 -->
             <div class="button-group">
                 <button class="btn btn-add" onclick="addMember()" style="font-size:20px; padding:3px 5px;">추가</button>
-                <button class="btn btn-update btn-disabled" id="updateBtn" onclick="checkLockBeforeUpdate()" style="font-size:20px; padding:3px 5px;">수정</button>
+                <button class="btn btn-update btn-disabled" id="updateBtn" onclick="checkPermissionBeforeUpdate()" style="font-size:20px; padding:3px 5px;">수정</button>
                 <button class="btn btn-clear" onclick="clearForm()" style="font-size:20px; padding:3px 5px;">초기화</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 로그인 모달 -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🔑 로그인</h2>
+                <button class="close-btn" onclick="closeLoginModal()">×</button>
+            </div>
+            <div class="login-form-group">
+                <label for="loginUsername">아이디</label>
+                <input type="text" id="loginUsername" placeholder="아이디를 입력하세요">
+            </div>
+            <div class="login-form-group">
+                <label for="loginPassword">비밀번호</label>
+                <input type="password" id="loginPassword" placeholder="비밀번호를 입력하세요" onkeyup="if(event.key === 'Enter') login()">
+            </div>
+            <div class="login-form-group" style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                <input type="checkbox" id="rememberLogin" style="width: auto; margin: 0;">
+                <label for="rememberLogin" style="margin: 0; cursor: pointer; font-size: 14px;">로그인 상태 유지</label>
+            </div>
+            <div class="modal-buttons">
+                <button style="background: #2196F3;" onclick="login()">로그인</button>
+                <button style="background: #9E9E9E;" onclick="closeLoginModal()">취소</button>
             </div>
         </div>
     </div>
@@ -329,24 +346,6 @@
         </div>
     </div>
 
-    <!-- 비밀번호 입력 모달 -->
-    <div id="passwordModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>🔒 비밀번호 입력</h2>
-                <button class="close-btn" onclick="closePasswordModal()">×</button>
-            </div>
-            <p>설정을 열려면 비밀번호를 입력해주세요.</p>
-            <div class="password-input">
-                <input type="password" id="passwordInput" placeholder="비밀번호 입력" onkeyup="if(event.key === 'Enter') checkPassword()">
-            </div>
-            <div class="modal-buttons">
-                <button style="background: #2196F3;" onclick="checkPassword()">확인</button>
-                <button style="background: #9E9E9E;" onclick="closePasswordModal()">취소</button>
-            </div>
-        </div>
-    </div>
-
     <!-- 설정 모달 -->
     <div id="settingsModal" class="modal">
         <div class="modal-content">
@@ -354,18 +353,28 @@
                 <h2>⚙️ 설정</h2>
                 <button class="close-btn" onclick="closeSettings()">×</button>
             </div>
+            
+            <!-- 관리자 계정 설정 -->
+            <div class="form-group">
+                <label style="color: #FF9800; font-weight: bold;">👑 관리자 계정</label>
+                <input type="text" id="adminUsername" placeholder="관리자 아이디">
+                <input type="password" id="adminPassword" placeholder="관리자 비밀번호" style="margin-top: 5px;">
+            </div>
+
+            <!-- 부관리자 계정 설정 -->
+            <div class="form-group">
+                <label style="color: #2196F3; font-weight: bold;">🔰 부관리자 계정</label>
+                <div id="subAdminsList">
+                    <!-- 부관리자 목록이 여기에 생성됩니다 -->
+                </div>
+                <button type="button" class="photo-btn" onclick="addSubAdmin()" style="margin-top: 10px; width: 100%;">
+                    ➕ 부관리자 추가
+                </button>
+            </div>
+
             <div class="form-group">
                 <label for="clubNameInput">구장명</label>
                 <input type="text" id="clubNameInput" placeholder="예: OO탁구장">
-            </div>
-
-            <!-- 자동 잠금 시간 설정 -->
-            <div class="form-group">
-                <label for="lockTimeoutInput">자동 잠금 시간 (분)</label>
-                <input type="number" id="lockTimeoutInput" min="1" max="120" placeholder="60" value="60">
-                <div style="font-size: 12px; color: #666; margin-top: 5px;">
-                    ※ 암호 입력 후 자동으로 잠기기까지의 시간입니다. 기본값: 60분
-                </div>
             </div>
 
             <!-- 코치 이름 설정 -->
@@ -404,29 +413,25 @@
                     <input type="number" id="feePreset5" placeholder="기본값 5" style="margin-bottom: 5px;">
                 </div>
             </div>
-            
-            <!-- 수정/삭제 암호 설정 -->
-            <div class="form-group">
-                <label for="editPassword">수정/삭제 암호</label>
-                <input type="password" id="editPassword" placeholder="수정/삭제 암호 입력">
-                <div style="font-size: 12px; color: #666; margin-top: 5px;">
-                    ※ 상단 암호 입력 칸에 사용할 암호입니다.
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="adminPassword">관리자 비밀번호</label>
-                <input type="password" id="adminPassword" placeholder="새 비밀번호 입력">
-                <div style="font-size: 12px; color: #666; margin-top: 5px;">
-                    ※ 설정 메뉴 접근용 비밀번호입니다.
-                </div>
-            </div>
+
             <div class="modal-buttons" style="margin-top: 20px;">
                 <button style="background: #2196F3;" onclick="saveSettings()">저장</button>
                 <button style="background: #9E9E9E;" onclick="closeSettings()">취소</button>
             </div>
 
-			<!-- settingsModal 내부의 버튼 부분 수정 -->
+			<!-- 로그인 정보 및 로그아웃 -->
 			<div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #e0e0e0;">
+				<div id="settingsLoginInfo" style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin-bottom: 10px; text-align: center;">
+					<div style="font-size: 14px; color: #666; margin-bottom: 8px;">현재 로그인 상태</div>
+					<div style="font-size: 16px; font-weight: 600; color: #333;" id="settingsUserStatus">👤 손님</div>
+				</div>
+				<button id="settingsLogoutBtn" style="width: 100%; padding: 12px; background: #f44336; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; display: none;" onclick="logout(); closeSettings();">
+					🚪 로그아웃
+				</button>
+			</div>
+
+			<!-- settingsModal 내부의 버튼 부분 수정 -->
+			<div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e0e0e0;">
 				<button style="width: 100%; padding: 12px; background: #2196F3; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;" onclick="exportData()">
 					📤 엑셀 내보내기
 				</button>
@@ -480,7 +485,7 @@
     
     <!-- 분리된 JS 파일들 -->
     <script src="js/base.js"></script>
-    <script src="js/lock.js"></script>
+    <script src="js/login.js"></script>
     <script src="js/modal.js"></script>
     <script src="js/camera.js"></script>
     <script src="js/member.js"></script>

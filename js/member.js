@@ -5,14 +5,10 @@ let sortAscending = true;
 // 검색 함수
 function searchMembers() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    const searchBar = document.getElementById('searchInput'); // 검색바 요소 가져오기
+    const searchBar = document.getElementById('searchInput');
     
-    // 검색 시 검색바가 보이는 위치로 스크롤
     if (searchBar) {
-        searchBar.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'start' // 'start', 'center', 'end', 'nearest' 중 선택
-        });
+        searchBar.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     
     if (searchTerm === '') {
@@ -24,11 +20,10 @@ function searchMembers() {
         });
     }
     
-    // 현재 정렬 방식에 따라 렌더링
     if (currentSort === 'coach') {
-        renderMembersByCoach(); // 코치별 렌더링 (coach.js에서 정의)
+        renderMembersByCoach();
     } else {
-        sortMembers(currentSort, true); // 기존 방식
+        sortMembers(currentSort, true);
     }
 }
 
@@ -56,13 +51,11 @@ function sortMembers(sortBy, fromSearch) {
         }
     }
     
-    // 코치별 정렬 선택 시
     if (sortBy === 'coach') {
-        renderMembersByCoach(); // coach.js에서 정의
+        renderMembersByCoach();
         return;
     }
     
-    // 기존 정렬 로직 (이름순, 등록일순)
     let sortTarget = filteredMembers;
     
     switch(sortBy) {
@@ -89,9 +82,8 @@ function sortMembers(sortBy, fromSearch) {
 
 // 기본 회원 목록 렌더링
 function renderMembers() {
-    // 코치순 정렬일 경우 코치별 렌더링 호출
     if (currentSort === 'coach') {
-        renderMembersByCoach(); // coach.js에서 정의
+        renderMembersByCoach();
         return;
     }
     
@@ -118,22 +110,12 @@ function renderMembers() {
             `<div><a href="tel:${String(member.phone).replace(/-/g, '')}" class="phone-link">📞 ${member.phone}</a></div>` : '';
 
         let scheduleBadges = '';
-        
-        // 새로운 schedules 배열 형식
         if (member.schedules && member.schedules.length > 0) {
             member.schedules.forEach(schedule => {
                 if (schedule.day && schedule.startTime && schedule.endTime) {
                     scheduleBadges += `<span class="schedule-badge">${dayNames[schedule.day]} ${schedule.startTime}~${schedule.endTime}</span>`;
                 }
             });
-        } else {
-            // 기존 day1, day2 형식 (하위 호환)
-            if (member.day1 && member.startTime1 && member.endTime1) {
-                scheduleBadges += `<span class="schedule-badge">${dayNames[member.day1]} ${member.startTime1}~${member.endTime1}</span>`;
-            }
-            if (member.day2 && member.startTime2 && member.endTime2) {
-                scheduleBadges += `<span class="schedule-badge">${dayNames[member.day2]} ${member.startTime2}~${member.endTime2}</span>`;
-            }
         }
 
         const currentCount = member.currentCount || 0;
@@ -154,8 +136,10 @@ function renderMembers() {
             coachBadge = `<span class="coach-badge">🏋️ ${member.coach}</span>`;
         }
 
-        const editBtnClass = isUnlocked ? 'btn-edit' : 'btn-edit btn-edit-disabled btn-hidden';
-        const deleteBtnClass = isUnlocked ? 'btn-delete' : 'btn-delete btn-delete-disabled btn-hidden';
+        // 권한에 따른 버튼 표시
+        const hasPermission = hasEditPermission();
+        const editBtnClass = hasPermission ? 'btn-edit' : 'btn-edit btn-edit-disabled btn-hidden';
+        const deleteBtnClass = hasPermission ? 'btn-delete' : 'btn-delete btn-delete-disabled btn-hidden';
 
         return `
         <div class="member-card">
@@ -167,10 +151,10 @@ function renderMembers() {
                         ${attendanceCount}
                     </div>
                     <div class="member-actions">
-                        <button class="${editBtnClass}" data-index="${originalIndex}" onclick="editMember(${originalIndex}); resetLockTimer();">
+                        <button class="${editBtnClass}" data-index="${originalIndex}" onclick="editMember(${originalIndex});">
                             수정
                         </button>
-                        <button class="${deleteBtnClass}" data-index="${originalIndex}" onclick="checkLockBeforeDelete(${originalIndex});">
+                        <button class="${deleteBtnClass}" data-index="${originalIndex}" onclick="checkPermissionBeforeDelete(${originalIndex});">
                             삭제
                         </button>
                     </div>
@@ -193,12 +177,6 @@ function renderMembers() {
 // 회원 상세 정보 팝업
 function showMemberDetails(index) {
     const member = members[index];
-    
-    // 잠금 툴팁이 표시되어 있다면 숨기기
-    const lockTooltip = document.getElementById('lockTooltip');
-    if (lockTooltip) {
-        lockTooltip.classList.remove('visible');
-    }
     
     let detailsHTML = `
         <div class="member-details-modal">
@@ -242,17 +220,14 @@ function showMemberDetails(index) {
     if (member.coach) {
         detailsHTML += `<tr><td>🏋️ 담당 코치:</td><td><strong>${member.coach}</strong></td></tr>`;
     }
-    // 성별 정보 추가
     if (member.gender) {
         detailsHTML += `<tr><td>⚤ 성별:</td><td>${member.gender}</td></tr>`;
     }
     
-    // 생년 정보 추가
-    if (isUnlocked && member.birthYear) {
+    if (hasEditPermission() && member.birthYear) {
         detailsHTML += `<tr><td>🎂 생년:</td><td>${member.birthYear}년생</td></tr>`;
     }
     
-    // 부수 정보 추가
     if (member.skillLevel !== undefined && member.skillLevel !== null) {
         let skillText = '';
         if (member.skillLevel === -1) {
@@ -276,8 +251,8 @@ function showMemberDetails(index) {
         </div>
     `;
 
-    // 잠금 해제 상태에서만 비밀글 표시
-    if (isUnlocked && member.privateMemo) {
+    // 로그인 상태에서만 비밀글 표시
+    if (hasEditPermission() && member.privateMemo) {
         detailsHTML += `
             <div class="member-details-section">
                 <h3>📝 비밀글 (관리자용)</h3>
@@ -288,8 +263,8 @@ function showMemberDetails(index) {
         `;
     }
     
-    // 입금 내역은 잠금 해제 시에만 표시
-    if (isUnlocked) {
+    // 입금 내역은 로그인 상태에서만 표시
+    if (hasEditPermission()) {
         const payments = member.paymentHistory || [];
         if (payments.length > 0) {
             const sortedPayments = [...payments].sort((a, b) => b.date.localeCompare(a.date));
@@ -320,33 +295,12 @@ function showMemberDetails(index) {
                 </div>
             `;
         }
-    } else {
-        // 잠금 상태일 때는 입금 내역 대신 안내 메시지 표시
-        const payments = member.paymentHistory || [];
-        if (payments.length > 0) {
-            detailsHTML += `
-                <div class="member-details-section">
-                    <h3>💳 회비 입금 내역</h3>
-                    <div style="text-align: center; padding: 20px; background: #f9f9f9; border-radius: 8px; color: #666;">
-                        🔒 입금 내역을 보려면 잠금을 해제해주세요
-                    </div>
-                </div>
-            `;
-        }
     }
     
     // 스케줄 정보 표시
     const memberSchedules = [];
     if (member.schedules && member.schedules.length > 0) {
         memberSchedules.push(...member.schedules);
-    } else {
-        // 기존 형식 호환
-        if (member.day1 && member.startTime1 && member.endTime1) {
-            memberSchedules.push({ day: member.day1, startTime: member.startTime1, endTime: member.endTime1 });
-        }
-        if (member.day2 && member.startTime2 && member.endTime2) {
-            memberSchedules.push({ day: member.day2, startTime: member.startTime2, endTime: member.endTime2 });
-        }
     }
     
     if (memberSchedules.length > 0) {
@@ -385,7 +339,6 @@ function showMemberDetails(index) {
         `;
     }
 
-    // 수상경력 섹션 추가
     if (member.awards && member.awards.length > 0) {
         detailsHTML += `
             <div class="member-details-section">
@@ -401,7 +354,6 @@ function showMemberDetails(index) {
         `;
     }
     
-    // 기타란 섹션 추가
     if (member.etc) {
         detailsHTML += `
             <div class="member-details-section">
@@ -418,8 +370,7 @@ function showMemberDetails(index) {
             <div class="member-details-footer">
     `;
     
-    // 수정 버튼은 잠금 해제 시에만 표시
-    if (isUnlocked) {
+    if (hasEditPermission()) {
         detailsHTML += `<button class="btn btn-edit" onclick="editMember(${index}); closeMemberDetails();">수정</button>`;
     }
     
@@ -440,8 +391,6 @@ function showMemberDetails(index) {
             closeMemberDetails();
         }
     });
-    
-    resetLockTimer();
 }
 
 // 회원의 모든 출석 날짜 가져오기
@@ -459,11 +408,10 @@ function closeMemberDetails() {
     }
 }
 
-// 회원 편집 폼 채우기 (이름 입력란으로 포커스 이동)
+// 회원 편집 폼 채우기
 function editMember(index) {
     const member = members[index];
     
-    // 폼 섹션에 수정 모드 클래스 추가 (선택사항)
     const formSection = document.querySelector('.form-section');
     if (formSection) {
         formSection.classList.add('form-edit-mode');
@@ -472,50 +420,65 @@ function editMember(index) {
     document.getElementById('name').value = member.name;
     document.getElementById('phone').value = member.phone || '';
     document.getElementById('registerDate').value = member.registerDate || '';
-    document.getElementById('fee').value = member.fee || '';
-    document.getElementById('day1').value = member.day1 || '';
-    document.getElementById('startTime1').value = member.startTime1 || '';
-    document.getElementById('endTime1').value = member.endTime1 || '';
-    document.getElementById('day2').value = member.day2 || '';
-    document.getElementById('startTime2').value = member.startTime2 || '';
-    document.getElementById('endTime2').value = member.endTime2 || '';
+    document.getElementById('fee').value = member.fee !== null && member.fee !== undefined ? member.fee : '';
     document.getElementById('email').value = member.email || '';
     document.getElementById('address').value = member.address || '';
     document.getElementById("targetCount").value = member.targetCount || 0;
     document.getElementById("currentCount").value = member.currentCount || 0;
 
-    setSelectedCoach(member.coach || ''); // coach.js에서 정의
+    setSelectedCoach(member.coach || '');
+    setSelectedGender(member.gender || '');
+    document.getElementById('birthYear').value = member.birthYear || '';
+    document.getElementById('skillLevel').value = member.skillLevel !== null && member.skillLevel !== undefined ? member.skillLevel : '';
+    document.getElementById('etc').value = member.etc || '';
+    
+    const privateMemoSection = document.getElementById('privateMemoSection');
+    const privateMemoInput = document.getElementById('privateMemo');
+    if (hasEditPermission()) {
+        privateMemoSection.style.display = 'block';
+        privateMemoInput.value = member.privateMemo || '';
+    } else {
+        privateMemoSection.style.display = 'none';
+        privateMemoInput.value = '';
+    }
+    
+    setAwardsList(member.awards || []);
+
+    if (member.schedules && member.schedules.length > 0) {
+        setSchedulesData(member.schedules);
+    } else {
+        setSchedulesData(null);
+    }
 
     document.getElementById('paymentSection').style.display = 'block';
     renderPaymentList(member.paymentHistory || []);
     document.getElementById('paymentDate').value = new Date().toISOString().split('T')[0];
-    document.getElementById('paymentAmount').value = member.fee || '';
+    document.getElementById('paymentAmount').value = member.fee !== null && member.fee !== undefined ? member.fee : '';
 
     if (member.photo) {
         currentPhotoData = member.photo;
         displayPhotoPreview();
     } else {
-        removePhoto();
+        currentPhotoData = null;
+        displayPhotoPreview();
     }
 
+    isPhotoRemoved = false;
     currentEditIndex = index;
     
-    // 상단으로 스크롤 이동
     window.scrollTo({ top: 0, behavior: 'smooth' });
     
-setTimeout(() => {
-    const nameInput = document.getElementById('name');
-    if (nameInput) {
-        nameInput.setAttribute('readonly', 'readonly');
-        nameInput.focus();
-        nameInput.select();
-        setTimeout(() => {
-            nameInput.removeAttribute('readonly');
-        }, 100);
-    }
-}, 300);
-    
-    resetLockTimer();
+    setTimeout(() => {
+        const nameInput = document.getElementById('name');
+        if (nameInput) {
+            nameInput.setAttribute('readonly', 'readonly');
+            nameInput.focus();
+            nameInput.select();
+            setTimeout(() => {
+                nameInput.removeAttribute('readonly');
+            }, 100);
+        }
+    }, 300);
 }
 
 // 스케줄 렌더링
@@ -528,7 +491,6 @@ function renderSchedule() {
     });
 
     members.forEach(member => {
-        // 새로운 schedules 배열 형식
         if (member.schedules && member.schedules.length > 0) {
             member.schedules.forEach(schedule => {
                 if (schedule.day && schedule.startTime && schedule.endTime) {
@@ -540,24 +502,6 @@ function renderSchedule() {
                     });
                 }
             });
-        } else {
-            // 기존 day1, day2 형식 (하위 호환)
-            if (member.day1 && member.startTime1 && member.endTime1) {
-                scheduleByDay[member.day1].push({
-                    name: member.name,
-                    startTime: member.startTime1,
-                    endTime: member.endTime1,
-                    coach: member.coach || ''
-                });
-            }
-            if (member.day2 && member.startTime2 && member.endTime2) {
-                scheduleByDay[member.day2].push({
-                    name: member.name,
-                    startTime: member.startTime2,
-                    endTime: member.endTime2,
-                    coach: member.coach || ''
-                });
-            }
         }
     });
 
@@ -641,5 +585,4 @@ function switchTab(tabName) {
         document.getElementById('scheduleSection').classList.add('active');
         renderSchedule();
     }
-    resetLockTimer();
 }

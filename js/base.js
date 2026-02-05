@@ -1,24 +1,9 @@
-// Service Worker 등록 (에러 핸들링 추가)
+// Service Worker 등록
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
-            .then(registration => {
-                console.log('✅ Service Worker 등록 성공:', registration.scope);
-                
-                // 업데이트 확인
-                registration.addEventListener('updatefound', () => {
-                    const newWorker = registration.installing;
-                    newWorker.addEventListener('statechange', () => {
-                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            console.log('🔄 새로운 버전이 있습니다. 페이지를 새로고침하세요.');
-                        }
-                    });
-                });
-            })
-            .catch(error => {
-                console.log('❌ Service Worker 등록 실패:', error);
-                // 실패해도 앱은 정상 작동
-            });
+            .then(registration => console.log('✅ Service Worker 등록 성공:', registration.scope))
+            .catch(error => console.log('❌ Service Worker 등록 실패:', error));
     });
 }
 
@@ -39,10 +24,13 @@ let filteredMembers = [];
 let settings = { 
     clubName: '',
     feePresets: [40000, 70000, 100000, 200000, 300000],
-    adminPassword: '0000',
-    editPassword: '0000',
-    lockTimeout: 60,
-    coaches: ['', '', '', '']
+    coaches: ['', '', '', ''],
+    // 로그인 시스템
+    adminUser: {
+        username: 'admin',
+        password: '0000'
+    },
+    subAdmins: []
 };
 let firebaseDb = null;
 
@@ -83,19 +71,15 @@ function loadFromFirebase() {
     firebaseDb.ref('settings').once('value', (snapshot) => {
         const data = snapshot.val();
         if (data) {
-            settings.clubName = data.clubName !== undefined ? data.clubName : settings.clubName;
-            settings.feePresets = data.feePresets !== undefined ? data.feePresets : settings.feePresets;
-            settings.adminPassword = data.adminPassword !== undefined ? data.adminPassword : settings.adminPassword;
-            settings.editPassword = data.editPassword !== undefined ? data.editPassword : settings.editPassword;
-            settings.lockTimeout = data.lockTimeout !== undefined ? data.lockTimeout : 60;
-            settings.coaches = data.coaches !== undefined ? data.coaches : ['', '', '', ''];
+            settings.clubName = data.clubName || '';
+            settings.feePresets = data.feePresets || settings.feePresets;
+            settings.coaches = data.coaches || ['', '', '', ''];
+            settings.adminUser = data.adminUser || settings.adminUser;
+            settings.subAdmins = data.subAdmins || [];
 
             document.getElementById('clubNameDisplay').textContent = settings.clubName || '구장명을 설정하세요';
             updateFeePresetButtons();
             renderCoachButtons();
-        } else {
-            settings.lockTimeout = 60;
-            settings.coaches = ['', '', '', ''];
         }
     });
 }
@@ -106,8 +90,6 @@ function listenToFirebaseChanges() {
         const data = snapshot.val();
         if (data) {
             members = Object.values(data).map(normalizeMember);
-
-            // 현재 검색/정렬 상태 보존
             const currentSearch = document.getElementById('searchInput').value;
             if (currentSearch) {
                 filteredMembers = members.filter(member => {
@@ -117,46 +99,29 @@ function listenToFirebaseChanges() {
             } else {
                 filteredMembers = [...members];
             }
-
-            sortMembers(currentSort, true);
+            renderMembers();
             renderSchedule();
         }
     });
 }
 
-// Firebase에 저장 - 개선된 버전
+// Firebase에 저장
 function saveToFirebase() {
-    console.log('saveToFirebase - 저장 시작');
-    console.log('saveToFirebase - members 데이터:', JSON.stringify(members, null, 2));
-    
-    // 객체 정리 함수 - undefined와 함수 제거, schedules 배열 보존
     function cleanObject(obj) {
-        if (obj === null || obj === undefined) {
-            return null;
-        }
-        
+        if (obj === null || obj === undefined) return null;
         if (Array.isArray(obj)) {
             return obj.map(item => cleanObject(item)).filter(item => item !== undefined);
         }
-        
         if (typeof obj === 'object') {
             const cleaned = {};
             for (const key in obj) {
                 if (obj.hasOwnProperty(key)) {
                     const value = obj[key];
-                    
-                    // undefined와 함수는 제외
-                    if (value === undefined || typeof value === 'function') {
-                        continue;
-                    }
-                    
-                    // null은 그대로 유지
+                    if (value === undefined || typeof value === 'function') continue;
                     if (value === null) {
                         cleaned[key] = null;
                         continue;
                     }
-                    
-                    // 배열과 객체는 재귀적으로 정리
                     if (Array.isArray(value)) {
                         cleaned[key] = cleanObject(value);
                     } else if (typeof value === 'object') {
@@ -168,46 +133,26 @@ function saveToFirebase() {
             }
             return cleaned;
         }
-        
         return obj;
     }
 
     try {
-        // 회원 데이터를 객체로 변환
         const membersObj = {};
         members.forEach((member, index) => {
-            // 각 회원 데이터 정리
-            const cleanedMember = cleanObject(member);
-            
-            // schedules 배열이 제대로 있는지 확인
-            if (cleanedMember.schedules) {
-                console.log(`회원 ${index} (${cleanedMember.name}) - schedules:`, cleanedMember.schedules);
-            }
-            
-            membersObj[index] = cleanedMember;
+            membersObj[index] = cleanObject(member);
         });
-
-        console.log('saveToFirebase - 정리된 membersObj:', JSON.stringify(membersObj, null, 2));
-
-        // Firebase에 저장
+        
         firebaseDb.ref('members').set(membersObj)
-            .then(() => {
-                console.log('✅ Firebase 저장 성공');
-            })
+            .then(() => console.log('✅ Firebase 저장 성공'))
             .catch((error) => {
                 console.error('❌ Firebase 저장 실패:', error);
                 showAlert('데이터 저장에 실패했습니다: ' + error.message);
             });
 
-        // 설정 저장
         const cleanedSettings = cleanObject(settings);
         firebaseDb.ref('settings').set(cleanedSettings)
-            .then(() => {
-                console.log('✅ 설정 저장 성공');
-            })
-            .catch((error) => {
-                console.error('❌ 설정 저장 실패:', error);
-            });
+            .then(() => console.log('✅ 설정 저장 성공'))
+            .catch((error) => console.error('❌ 설정 저장 실패:', error));
             
     } catch (error) {
         console.error('❌ saveToFirebase 오류:', error);
@@ -220,7 +165,6 @@ function normalizeMember(member) {
     const cleaned = {};
     for (const key in member) {
         if (member[key] !== undefined) {
-            // 특정 필드의 데이터 타입 보장
             if (key === 'phone' && member[key] !== null) {
                 cleaned[key] = String(member[key]);
             } else if (key === 'name' && member[key] !== null) {
@@ -228,7 +172,6 @@ function normalizeMember(member) {
             } else if (key === 'coach' && member[key] !== null) {
                 cleaned[key] = String(member[key]);
             } else if (key === 'schedules' && Array.isArray(member[key])) {
-                // schedules 배열 보존
                 cleaned[key] = member[key];
             } else {
                 cleaned[key] = member[key];
@@ -236,7 +179,6 @@ function normalizeMember(member) {
         }
     }
     
-    // 필수 필드 기본값 설정
     if (!cleaned.photo) cleaned.photo = '';
     if (!cleaned.attendanceHistory) cleaned.attendanceHistory = [];
     if (!cleaned.coach) cleaned.coach = '';
@@ -266,17 +208,11 @@ function updateFeePresetButtons() {
     });
 }
 
-// 숫자 포맷팅 (안전성 추가)
+// 숫자 포맷팅
 function formatNumber(num) {
-    // null, undefined, 빈 문자열 체크
-    if (num === null || num === undefined || num === '') {
-        return '0';
-    }
-    // 숫자로 변환
+    if (num === null || num === undefined || num === '') return '0';
     const number = typeof num === 'number' ? num : parseFloat(num);
-    if (isNaN(number)) {
-        return '0';
-    }
+    if (isNaN(number)) return '0';
     return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
@@ -293,30 +229,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const targetCountEl = document.getElementById('targetCount');
     const currentCountEl = document.getElementById('currentCount');
     
-    // 요소가 존재하는 경우에만 값 설정
-    if (registerDateEl) {
-        registerDateEl.valueAsDate = new Date();
-    }
-    if (targetCountEl) {
-        targetCountEl.value = "0";
-    }
-    if (currentCountEl) {
-        currentCountEl.value = "0";
-    }
+    if (registerDateEl) registerDateEl.valueAsDate = new Date();
+    if (targetCountEl) targetCountEl.value = "0";
+    if (currentCountEl) currentCountEl.value = "0";
     
     updateFeePresetButtons();
     renderCoachButtons();
     
-    // 잠금 상태 초기화 및 회원 목록 렌더링
-    updateLockStatus();
-    
-    // Firebase 로딩이 완료되면 회원 목록 렌더링
-    // Firebase 로드가 비동기이므로 약간의 지연 후 실행
     setTimeout(() => {
         if (members.length > 0) {
             renderMembers();
             renderSchedule();
         }
     }, 500);
-
 });
