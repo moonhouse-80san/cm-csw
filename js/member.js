@@ -243,7 +243,7 @@ function showMemberDetails(index) {
     const targetCount = member.targetCount || 0;
     const currentCount = member.currentCount || 0;
     if (targetCount > 0) {
-        detailsHTML += `<tr><td>📊 현재 출석:</td><td>${currentCount}/${targetCount}회</td></tr>`;
+        detailsHTML += `<tr><td>📊 현재 레슨:</td><td>${currentCount}/${targetCount}회</td></tr>`;
     }
     
     detailsHTML += `
@@ -322,7 +322,7 @@ function showMemberDetails(index) {
     if (allDates.length > 0) {
         detailsHTML += `
             <div class="member-details-section">
-                <h3>출석 기록 (전체 ${allDates.length}건)</h3>
+                <h3>레슨 기록 (전체 ${allDates.length}건)</h3>
                 <div class="attendance-dates">
         `;
         const sortedDates = [...allDates].sort((a, b) => b.localeCompare(a)).slice(0, 20);
@@ -393,7 +393,7 @@ function showMemberDetails(index) {
     });
 }
 
-// 회원의 모든 출석 날짜 가져오기
+// 회원의 모든 레슨 날짜 가져오기
 function getAllAttendanceDates(member) {
     const history = member.attendanceHistory || [];
     const current = member.attendanceDates || [];
@@ -528,13 +528,15 @@ function renderSchedule() {
         });
 
         scheduleHTML += `
-            <div class="day-schedule">
-                <div class="day-header">
-                    <div class="day-name">
-                        ${dayNames[day]}
+            <div class="day-section" data-day-section="${day}">
+                <div class="day-section-header" onclick="toggleDaySection('${day}')">
+                    <div class="day-title">
+                        <span class="toggle-icon">▼</span>
+                        <span class="day-name">${dayNames[day]}</span>
                         <span class="day-count">${dayMembers.length}명</span>
                     </div>
                 </div>
+                <div class="day-schedule-content">
         `;
 
         if (sortedTimeSlots.length === 0) {
@@ -559,10 +561,27 @@ function renderSchedule() {
             });
         }
 
-        scheduleHTML += `</div>`;
+        scheduleHTML += `
+                </div>
+            </div>
+        `;
     });
     
     scheduleEl.innerHTML = scheduleHTML;
+}
+
+// 요일 섹션 토글
+function toggleDaySection(day) {
+    const section = document.querySelector(`[data-day-section="${day}"]`);
+    if (section) {
+        const isCollapsed = section.classList.contains('collapsed');
+        section.classList.toggle('collapsed');
+        
+        const toggleIcon = section.querySelector('.toggle-icon');
+        if (toggleIcon) {
+            toggleIcon.textContent = isCollapsed ? '▼' : '▶';
+        }
+    }
 }
 
 // 탭 전환
