@@ -81,7 +81,6 @@ function sortMembers(sortBy, fromSearch) {
 }
 
 // 기본 회원 목록 렌더링
-// 기본 회원 목록 렌더링
 function renderMembers() {
     if (currentSort === 'coach') {
         renderMembersByCoach();
@@ -125,7 +124,6 @@ function renderMembers() {
             attendanceCount = '<span class="attendance-count" style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px; background: #fff; color: #ff6600; border-radius: 2px; font-size: 14px; font-weight: 500; margin-left: 5px; white-space: nowrap;">📊 ' + currentCount + '/' + targetCount + '회</span>';
         }
 
-        // 부수 정보 제거됨
         let coachBadge = '';
         if (member.coach) {
             coachBadge = '<span class="coach-badge">🏋️ ' + member.coach + '</span>';
@@ -385,7 +383,7 @@ function showHistoryModal(memberIndex) {
         '<div class="member-details-content" style="max-height: 70vh; overflow-y: auto;">';
     
     historyHTML += '<div style="background: linear-gradient(135deg, #4CAF50, #45a049); color: white; padding: 5px; border-radius: 12px; margin-bottom: 10px; text-align: center;">' +
-        '<div style="font-size: 14px; font-weight: 700; margin-bottom: 5px;">총 ' + historyDates.length + '회</div>' +
+        '<div style="font-size: 14px; font-weight: 700; margin-bottom: 1px;">총 ' + historyDates.length + '회</div>' +
         '<div style="font-size: 14px; opacity: 0.9;">레슨을 완료했습니다!</div>' +
     '</div>';
     
@@ -412,8 +410,8 @@ function showHistoryModal(memberIndex) {
         dates.forEach(date => {
             const formattedDate = formatDate(date);
             historyHTML += '<div style="display: inline-flex; align-items: center; background: #f1f8e9; border-radius: 6px; padding:1px;">' +
-                '<span style="color: #558b2f; font-size: 13px;">' + formattedDate + '</span>' +
-                '<span style="color: #f44336; cursor: pointer; font-size: 20px; font-weight: bold; margin-left: 5px;" onclick="deleteAttendanceDate(' + memberIndex + ', \'' + date + '\', \'history\')">×</span>' +
+                '<span style="color: #558b2f; font-size: 12px;">' + formattedDate + '</span>' +
+                '<span style="color: #f44336; cursor: pointer; font-size: 14px; font-weight: bold; margin-left: 5px;" onclick="deleteAttendanceDate(' + memberIndex + ', \'' + date + '\', \'history\')">×</span>' +
             '</div>';
         });
         
