@@ -6,7 +6,7 @@ let selectedDate = null;
 function toggleCalendar() {
     // 권한 확인 - 관리자/부관리자만 접근 가능
     if (!hasEditPermission()) {
-        showAlert('레슨 관리 기능은 관리자 권한이 필요합니다.');
+        showAlert('레슨 관리 기능은 로그인이 필요합니다.');
         openLoginModal();
         return;
     }
@@ -52,15 +52,15 @@ function sendWelcomeSMS(memberName, memberPhone) {
     const accountNumber = settings.bankAccount?.accountNumber || '';
     
 	let message =
-		memberName + '회원님 회원이 되신 것을 축하드립니다. ' +
-		'즐거운 탁구 생활 되시길 바랍니다.';
+		memberName + '님 회원이 되신 것을 축하드립니다. ' +
+		'즐거운 탁구 생활 되세요.';
 
 	if (bank && accountNumber) {
 		// 콜론 제거 + 한 줄 유지
 		message += ' 계좌 ' + bank + ' ' + accountNumber;
 	}
 
-	message += ' 감사합니다. - ' + clubName;
+	message += ' 감사합니다.' + clubName;
     
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
@@ -107,11 +107,10 @@ function sendAttendanceCompleteSMS(memberName, memberPhone, targetCount) {
     const accountNumber = settings.bankAccount?.accountNumber || '';
     
 	let message =
-		memberName + '회원님 레슨 ' + targetCount +
-		'회 완료. 회비 납부 부탁드립니다.';
+		memberName + '회원님 레슨 완료' +
+		'회비 납부 부탁드립니다.';
 
 	if (bank && accountNumber) {
-		// MMS 트리거 최소화 (콜론 제거, 한 줄)
 		message += ' 납부계좌 ' + bank + accountNumber;
 	}
 
@@ -292,6 +291,13 @@ function nextMonthForm() {
 }
 
 function selectDate(year, month, date) {
+    // 권한 확인 - 날짜 선택 시점에 체크
+    if (!hasEditPermission()) {
+        showAlert('레슨 체크는 관리자 권한이 필요합니다.');
+        openLoginModal();
+        return;
+    }
+    
     const hasMembersWithTarget = members.some(member => {
         const targetCount = member.targetCount || 0;
         return targetCount > 0;
