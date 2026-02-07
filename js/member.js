@@ -207,17 +207,20 @@ function showMemberDetails(index) {
         detailsHTML += '<tr><td>🎂 생년:</td><td>' + member.birthYear + '년생</td></tr>';
     }
     
-    if (member.skillLevel !== undefined && member.skillLevel !== null) {
-        let skillText = '';
-        if (member.skillLevel === -1) {
-            skillText = '희망';
-        } else if (member.skillLevel === 0) {
-            skillText = '0부 (입문)';
-        } else {
-            skillText = member.skillLevel + '부';
-        }
-        detailsHTML += '<tr><td>🏓 부수:</td><td>' + skillText + '</td></tr>';
-    }
+	// member.js 파일에서 부수 표시 부분 수정
+	if (member.skillLevel !== undefined && member.skillLevel !== null) {
+		let skillText = '';
+		if (member.skillLevel === -2) {
+			skillText = '선수출신';
+		} else if (member.skillLevel === -1) {
+			skillText = '희망';
+		} else if (member.skillLevel === 0) {
+			skillText = '0부'; 
+		} else {
+			skillText = member.skillLevel + '부';
+		}
+		detailsHTML += '<tr><td>🏓 부수:</td><td>' + skillText + '</td></tr>';
+	}
     
     const targetCount = member.targetCount || 0;
     const currentCount = member.currentCount || 0;
