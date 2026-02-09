@@ -237,13 +237,21 @@ function closeLoginModal() {
 
 // 설정 아이콘 클릭 처리
 function handleSettingsClick() {
-    // 로그인되어 있지 않으면 로그인 모달 띄우기
+    // 먼저 로그인 상태 확인
     if (!hasEditPermission()) {
+        // 로그인 안 된 경우 로그인 모달
         openLoginModal();
-    } else {
-        // 로그인되어 있으면 기존 설정 열기
-        openSettings();
+        return;
     }
+    
+    // 로그인은 되었지만 관리자가 아닌 경우 (부관리자 등)
+    if (!hasSettingsPermission()) {
+        showAlert('설정 메뉴는 관리자만 접근 가능합니다!');
+        return;
+    }
+    
+    // 관리자일 경우 설정 열기
+    openSettingsDialog();
 }
 
 // 권한 확인 헬퍼 함수

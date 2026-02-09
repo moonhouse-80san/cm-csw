@@ -7,37 +7,59 @@ function openSettings() {
 }
 
 function openSettingsDialog() {
-    document.getElementById('clubNameInput').value = settings.clubName || '';
-    document.getElementById('feePreset1').value = settings.feePresets[0] || '';
-    document.getElementById('feePreset2').value = settings.feePresets[1] || '';
-    document.getElementById('feePreset3').value = settings.feePresets[2] || '';
-    document.getElementById('feePreset4').value = settings.feePresets[3] || '';
-    document.getElementById('feePreset5').value = settings.feePresets[4] || '';
-    document.getElementById('adminUsername').value = settings.adminUser.username || '';
-    document.getElementById('adminPassword').value = ''; // 보안상 비밀번호는 표시하지 않음
-
-    document.getElementById('coachName1').value = settings.coaches[0] || '';
-    document.getElementById('coachName2').value = settings.coaches[1] || '';
-    document.getElementById('coachName3').value = settings.coaches[2] || '';
-    document.getElementById('coachName4').value = settings.coaches[3] || '';
+    const settingsModal = document.getElementById('settingsModal');
+    if (!settingsModal) {
+        console.error('설정 모달을 찾을 수 없습니다.');
+        return;
+    }
+    
+    const clubNameInput = document.getElementById('clubNameInput');
+    const adminUsername = document.getElementById('adminUsername');
+    const adminPassword = document.getElementById('adminPassword');
+    
+    // 각 요소가 존재하는지 확인 후 값 설정
+    if (clubNameInput) clubNameInput.value = settings.clubName || '';
+    if (adminUsername) adminUsername.value = settings.adminUser.username || '';
+    if (adminPassword) adminPassword.value = ''; // 보안상 비밀번호는 표시하지 않음
+    
+    // 코치 이름 설정
+    const coaches = settings.coaches || ['', '', '', ''];
+    for (let i = 1; i <= 4; i++) {
+        const coachInput = document.getElementById('coachName' + i);
+        if (coachInput) coachInput.value = coaches[i-1] || '';
+    }
+    
+    // 회비 프리셋 설정
+    const feePresets = settings.feePresets || [40000, 70000, 100000, 200000, 300000];
+    for (let i = 1; i <= 5; i++) {
+        const feeInput = document.getElementById('feePreset' + i);
+        if (feeInput) feeInput.value = feePresets[i-1] || '';
+    }
     
     // 계좌번호 설정
     if (settings.bankAccount) {
-        document.getElementById('bankName').value = settings.bankAccount.bank || '';
-        document.getElementById('accountNumber').value = settings.bankAccount.accountNumber || '';
+        const bankNameInput = document.getElementById('bankName');
+        const accountNumberInput = document.getElementById('accountNumber');
+        if (bankNameInput) bankNameInput.value = settings.bankAccount.bank || '';
+        if (accountNumberInput) accountNumberInput.value = settings.bankAccount.accountNumber || '';
     }
-
+    
     renderSubAdminsList();
-    document.getElementById('settingsModal').classList.add('active');
+    settingsModal.classList.add('active');
 }
 
 function closeSettings() {
-    document.getElementById('settingsModal').classList.remove('active');
+    const settingsModal = document.getElementById('settingsModal');
+    if (settingsModal) {
+        settingsModal.classList.remove('active');
+    }
 }
 
 // 부관리자 목록 렌더링
 function renderSubAdminsList() {
     const container = document.getElementById('subAdminsList');
+    if (!container) return;
+    
     const subAdmins = settings.subAdmins || [];
     
     if (subAdmins.length === 0) {
@@ -97,43 +119,56 @@ function removeSubAdmin(index) {
 }
 
 function saveSettings() {
-    settings.clubName = document.getElementById('clubNameInput').value.trim();
-
-    settings.coaches = [
-        document.getElementById('coachName1').value.trim(),
-        document.getElementById('coachName2').value.trim(),
-        document.getElementById('coachName3').value.trim(),
-        document.getElementById('coachName4').value.trim()
-    ];
-
-    settings.feePresets = [
-        parseInt(document.getElementById('feePreset1').value) || 0,
-        parseInt(document.getElementById('feePreset2').value) || 0,
-        parseInt(document.getElementById('feePreset3').value) || 0,
-        parseInt(document.getElementById('feePreset4').value) || 0,
-        parseInt(document.getElementById('feePreset5').value) || 0
-    ];
-
-    const newUsername = document.getElementById('adminUsername').value.trim();
-    const newPassword = document.getElementById('adminPassword').value;
+    // 각 입력 요소가 존재하는지 확인
+    const clubNameInput = document.getElementById('clubNameInput');
+    const bankNameInput = document.getElementById('bankName');
+    const accountNumberInput = document.getElementById('accountNumber');
+    const adminUsername = document.getElementById('adminUsername');
+    const adminPassword = document.getElementById('adminPassword');
     
-    if (newUsername) {
-        settings.adminUser.username = newUsername;
+    if (clubNameInput) settings.clubName = clubNameInput.value.trim();
+    
+    // 코치 이름 저장
+    const coaches = [];
+    for (let i = 1; i <= 4; i++) {
+        const coachInput = document.getElementById('coachName' + i);
+        coaches.push(coachInput ? coachInput.value.trim() : '');
     }
-    if (newPassword) {
-        settings.adminUser.password = newPassword;
+    settings.coaches = coaches;
+    
+    // 회비 프리셋 저장
+    const feePresets = [];
+    for (let i = 1; i <= 5; i++) {
+        const feeInput = document.getElementById('feePreset' + i);
+        const value = feeInput ? parseInt(feeInput.value) : 0;
+        feePresets.push(isNaN(value) ? 0 : value);
+    }
+    settings.feePresets = feePresets;
+    
+    // 관리자 정보 저장
+    if (adminUsername) {
+        const newUsername = adminUsername.value.trim();
+        if (newUsername) settings.adminUser.username = newUsername;
+    }
+    if (adminPassword) {
+        const newPassword = adminPassword.value;
+        if (newPassword) settings.adminUser.password = newPassword;
     }
     
     // 계좌번호 설정 저장
     settings.bankAccount = {
-        bank: document.getElementById('bankName').value.trim() || '',
-        accountNumber: document.getElementById('accountNumber').value.trim() || ''
+        bank: bankNameInput ? bankNameInput.value.trim() : '',
+        accountNumber: accountNumberInput ? accountNumberInput.value.trim() : ''
     };
-
+    
     saveToFirebase();
-    if (settings.clubName) {
-        document.getElementById('clubNameDisplay').textContent = settings.clubName;
+    
+    // UI 업데이트
+    const clubNameDisplay = document.getElementById('clubNameDisplay');
+    if (clubNameDisplay && settings.clubName) {
+        clubNameDisplay.textContent = settings.clubName;
     }
+    
     updateFeePresetButtons();
     renderCoachButtons();
     closeSettings();
