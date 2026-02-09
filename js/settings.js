@@ -456,23 +456,41 @@ function importData(event) {
                 renderCoachButtons();
             }
             
+            // ✅ 수정: confirm() 대신 showConfirm() 사용
             if (importedMembers.length > 0) {
-                const importConfirmed = members.length === 0 || 
-                    confirm(`현재 ${members.length}명의 회원이 있습니다. 엑셀 파일의 ${importedMembers.length}명으로 교체하시겠습니까?\n(주의: 기존 데이터는 삭제됩니다)`);
-                
-                if (importConfirmed) {
+                if (members.length === 0) {
+                    // 기존 데이터가 없으면 바로 추가
                     members = importedMembers;
                     filteredMembers = [...members];
                     saveToFirebase();
                     renderMembers();
                     renderSchedule();
                     showAlert(`${importedMembers.length}명의 회원 데이터를 성공적으로 가져왔습니다!`);
+                    closeSettings();
+                } else {
+                    // 기존 데이터가 있으면 확인 모달 사용
+                    showConfirm(
+                        `현재 ${members.length}명의 회원이 있습니다.\n엑셀 파일의 ${importedMembers.length}명으로 교체하시겠습니까?\n\n⚠️ 주의: 기존 데이터는 모두 삭제됩니다`,
+                        function() {
+                            // 확인 버튼 클릭 시
+                            members = importedMembers;
+                            filteredMembers = [...members];
+                            saveToFirebase();
+                            renderMembers();
+                            renderSchedule();
+                            showAlert(`${importedMembers.length}명의 회원 데이터를 성공적으로 가져왔습니다!`);
+                            closeSettings();
+                        },
+                        function() {
+                            // 취소 버튼 클릭 시
+                            event.target.value = '';
+                        }
+                    );
                 }
             } else {
                 showAlert('가져올 회원 데이터가 없습니다!');
+                closeSettings();
             }
-            
-            closeSettings();
             
         } catch (error) {
             console.error('엑셀 가져오기 오류:', error);
