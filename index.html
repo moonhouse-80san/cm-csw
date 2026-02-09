@@ -354,32 +354,14 @@
                 <h2>⚙️ 설정</h2>
                 <button class="close-btn" onclick="closeSettings()">×</button>
             </div>
-            
-            <!-- 관리자 계정 설정 -->
-            <div class="form-group">
-                <label style="color: #FF9800; font-weight: bold;">👑 관리자 계정</label>
-                <input type="text" id="adminUsername" placeholder="관리자 아이디">
-                <input type="password" id="adminPassword" placeholder="관리자 비밀번호" style="margin-top: 5px;">
-            </div>
 
-            <!-- 부관리자 계정 설정 -->
-            <div class="form-group">
-                <label style="color: #2196F3; font-weight: bold;">🔰 부관리자 계정</label>
-                <div id="subAdminsList">
-                    <!-- 부관리자 목록이 여기에 생성됩니다 -->
-                </div>
-                <button type="button" class="photo-btn" onclick="addSubAdmin()" style="margin-top: 10px; width: 100%;">
-                    ➕ 부관리자 추가
-                </button>
-            </div>
-
-            <div class="form-group">
+            <div class="form-group set">
                 <label for="clubNameInput">구장명</label>
                 <input type="text" id="clubNameInput" placeholder="예: OO탁구장">
             </div>
 
             <!-- 코치 이름 설정 -->
-            <div class="form-group">
+            <div class="form-group set">
                 <label>코치 이름 설정 (최대 4명)</label>
                 <div class="coach-settings-grid">
                     <div class="coach-setting-item">
@@ -404,7 +386,7 @@
                 </div>
             </div>
 
-           <div class="form-group">
+           <div class="form-group set">
                 <label>계좌번호 설정</label>
                 <input type="text" id="bankName" placeholder="은행명 (예: IM뱅크)" style="margin-bottom: 5px;">
                 <input type="text" id="accountNumber" placeholder="계좌번호">
@@ -413,7 +395,7 @@
                 </div>
             </div>
 
-            <div class="form-group">
+            <div class="form-group set">
                 <label>월회비 기본값 설정</label>
                 <div class="fee-presets" style="margin-top: 10px;">
                     <input type="number" id="feePreset1" placeholder="기본값 1" style="margin-bottom: 5px;">
@@ -427,6 +409,24 @@
             <div class="modal-buttons" style="margin-top: 20px;">
                 <button style="background: #2196F3;" onclick="saveSettings()">저장</button>
                 <button style="background: #9E9E9E;" onclick="closeSettings()">취소</button>
+            </div>
+            
+            <!-- 관리자 계정 설정 -->
+            <div class="form-group" style="margin-top:20px;">
+                <label style="color: #FF9800; font-weight: bold;">👑 관리자 계정</label>
+                <input type="text" id="adminUsername" placeholder="관리자 아이디">
+                <input type="password" id="adminPassword" placeholder="관리자 비밀번호" style="margin-top: 5px;">
+            </div>
+
+            <!-- 부관리자 계정 설정 -->
+            <div class="form-group" style="margin-top:10px;">
+                <label style="color: #2196F3; font-weight: bold;">🔰 부관리자 계정</label>
+                <div id="subAdminsList">
+                    <!-- 부관리자 목록이 여기에 생성됩니다 -->
+                </div>
+                <button type="button" class="photo-btn" onclick="addSubAdmin()" style="margin-top: 10px; width: 100%;">
+                    ➕ 부관리자 추가
+                </button>
             </div>
 
 			<!-- 로그인 정보 및 로그아웃 -->
